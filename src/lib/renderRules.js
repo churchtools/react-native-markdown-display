@@ -119,8 +119,37 @@ const renderRules = {
         modifiedInheritedStylesObj[arr[b]] = refStyle[arr[b]];
       }
     }
-
+	
     if (hasParents(parent, 'bullet_list')) {
+		// This is a fix for a ordered list nested in a bullet list
+		if(hasParents(parent, 'list_item') && hasParents(parent, 'ordered_list')) {
+			const orderedListIndex = parent.findIndex(
+				(el) => el.type === 'ordered_list',
+			);
+		
+			const orderedList = parent[orderedListIndex];
+			let listItemNumber;
+		
+			if (orderedList.attributes && orderedList.attributes.start) {
+				listItemNumber = orderedList.attributes.start + node.index;
+			} else {
+				listItemNumber = node.index + 1;
+			}
+		
+			return (
+				<View style={{
+					display: 'flex',
+					flexDirection: 'row',
+				}}>
+				  	<Text style={[modifiedInheritedStylesObj, styles.ordered_list_icon]}>
+						{listItemNumber}
+						{node.markup}
+						
+				  	</Text>
+					<View style={styles._VIEW_SAFE_ordered_list_content}>{children}</View>
+				</View>
+			);
+		}
       return (
         <View key={node.key} style={styles._VIEW_SAFE_list_item}>
           <Text
@@ -152,13 +181,13 @@ const renderRules = {
       }
 
       return (
-        <View key={node.key} style={styles._VIEW_SAFE_list_item}>
+		<View key={node.key} style={styles._VIEW_SAFE_list_item}>
           <Text style={[modifiedInheritedStylesObj, styles.ordered_list_icon]}>
             {listItemNumber}
             {node.markup}
           </Text>
           <View style={styles._VIEW_SAFE_ordered_list_content}>{children}</View>
-        </View>
+		</View>
       );
     }
 
